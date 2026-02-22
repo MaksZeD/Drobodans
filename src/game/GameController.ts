@@ -237,14 +237,21 @@ export class GameController {
   private arrangeDiscardPile(): void {
     const w = this.sceneManager.width;
     const h = this.sceneManager.height;
-    const pileScale = this.getCardScale() * 0.3;
+    const minDim = Math.min(w, h);
+    const isMobile = minDim < 768;
+
+    const pileScale = this.getCardScale() * (isMobile ? 0.28 : 0.3);
     const cardW = CardMesh.WIDTH * pileScale;
-    const spacing = cardW + 6;
+    const cardH = CardMesh.HEIGHT * pileScale;
+    const spacing = cardW + (isMobile ? 4 : 6);
     const count = this.discardPile.length;
 
     // Bottom-right corner, cards spread horizontally from right
     const startX = w / 2 - 20 - (count - 1) * spacing;
-    const baseY = -h / 2 + 60;
+    // On mobile, push cards down so only ~65% is visible (clipped by viewport edge)
+    const baseY = isMobile
+      ? -h / 2 + cardH * 0.35
+      : -h / 2 + 60;
 
     this.discardPile.forEach((card, i) => {
       const group = card.group;
