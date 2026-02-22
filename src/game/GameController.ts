@@ -24,6 +24,8 @@ export class GameController {
   private currentCardMesh: CardMesh | null = null;
   private isAnimating = false;
   private drawCount = 0;
+  private discardPile: CardMesh[] = [];
+  private static readonly MAX_DISCARD = 4;
 
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
@@ -116,6 +118,7 @@ export class GameController {
         const center = this.getCardCenter();
         this.currentCardMesh.group.position.set(center.x, center.y, GameController.CARD_Z);
       }
+      this.arrangeDiscardPile();
     });
   }
 
@@ -156,14 +159,24 @@ export class GameController {
     this.animController.deckBounce(this.deckMesh);
     this.soundManager.playCardSlide();
 
-    // Dismiss previous card
+    // Dismiss previous card to discard pile
     if (this.currentCardMesh) {
       const discard = this.getDiscardPosition();
       await this.animController.dismissCard(this.currentCardMesh, discard.x, discard.y);
-      this.sceneManager.scene.remove(this.currentCardMesh.group);
-      this.currentCardMesh.dispose();
-      this.currentCardMesh = null;
       this.uiManager.hideRule();
+
+      // Add to discard pile (keep visible as small card)
+      this.discardPile.push(this.currentCardMesh);
+      this.arrangeDiscardPile();
+
+      // Remove oldest if pile exceeds max
+      while (this.discardPile.length > GameController.MAX_DISCARD) {
+        const oldest = this.discardPile.shift()!;
+        this.sceneManager.scene.remove(oldest.group);
+        oldest.dispose();
+      }
+
+      this.currentCardMesh = null;
     }
 
     const card = this.deck.draw();
@@ -219,6 +232,24 @@ export class GameController {
     this.isAnimating = false;
   }
 
+  private arrangeDiscardPile(): void {
+    const baseX = this.sceneManager.width * 0.35;
+    const baseY = -this.sceneManager.height * 0.08;
+    const pileScale = this.getCardScale() * 0.35;
+
+    this.discardPile.forEach((card, i) => {
+      const group = card.group;
+      group.scale.set(pileScale, pileScale, 1);
+      group.position.set(
+        baseX + i * 8,
+        baseY + i * 4,
+        2 + i * 0.5,
+      );
+      group.rotation.z = -0.15 + i * 0.08 + (Math.random() - 0.5) * 0.05;
+      card.material.opacity = 0.6 + i * 0.1;
+    });
+  }
+
   private newGame(): void {
     this.animController.kill();
     this.isAnimating = false;
@@ -228,6 +259,13 @@ export class GameController {
       this.currentCardMesh.dispose();
       this.currentCardMesh = null;
     }
+
+    // Clear discard pile
+    for (const card of this.discardPile) {
+      this.sceneManager.scene.remove(card.group);
+      card.dispose();
+    }
+    this.discardPile = [];
 
     this.drawCount = 0;
     this.deck.reset();

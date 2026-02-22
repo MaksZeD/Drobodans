@@ -1,32 +1,32 @@
 /* Small phones (< 360px) */
 @media (max-width: 360px) {
   .badge {
-    font-size: 11px;
-    padding: 4px 8px;
+    font-size: 7px;
+    padding: 4px 6px;
   }
 
   .rule-panel {
-    width: 94vw;
+    width: 96vw;
     padding: 12px 14px;
     bottom: 6%;
   }
 
   .rule-title {
-    font-size: 17px;
+    font-size: 10px;
   }
 
   .rule-description {
-    font-size: 12px;
+    font-size: 7px;
   }
 
   .icon-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 13px;
+    width: 30px;
+    height: 30px;
+    font-size: 9px;
   }
 
   .game-over-banner {
-    font-size: 18px;
+    font-size: 10px;
     padding: 10px 20px;
   }
 }
@@ -34,44 +34,44 @@
 /* Tablets (768px+) */
 @media (min-width: 768px) {
   .badge {
-    font-size: 14px;
-    padding: 8px 16px;
+    font-size: 9px;
+    padding: 8px 14px;
   }
 
   .rule-panel {
-    width: min(420px, 55vw);
+    width: min(440px, 55vw);
     padding: 22px 30px;
     bottom: 10%;
   }
 
   .rule-title {
-    font-size: 24px;
+    font-size: 14px;
   }
 
   .rule-description {
-    font-size: 16px;
+    font-size: 9px;
   }
 
   .icon-btn {
     width: 42px;
     height: 42px;
-    font-size: 17px;
+    font-size: 12px;
   }
 
   .new-game-btn {
-    font-size: 18px;
-    padding: 14px 40px;
+    font-size: 10px;
+    padding: 14px 36px;
   }
 }
 
 /* Desktop landscape (1024px+) */
 @media (min-width: 1024px) and (orientation: landscape) {
   .rule-panel {
-    width: min(440px, 35vw);
+    width: min(460px, 35vw);
     bottom: 12%;
   }
 
   .tap-prompt {
-    font-size: 17px;
+    font-size: 10px;
   }
 }

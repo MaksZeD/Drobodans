@@ -6,6 +6,18 @@ export class BackgroundManager {
     this.container.id = 'bg-decorations';
     document.body.insertBefore(this.container, document.body.firstChild);
     this.spawn();
+
+    // Fade in after a frame so the transition catches
+    requestAnimationFrame(() => {
+      this.container.classList.add('ready');
+    });
+
+    // Parallax on mouse move
+    window.addEventListener('mousemove', (e) => {
+      const cx = (e.clientX / window.innerWidth - 0.5) * 2;
+      const cy = (e.clientY / window.innerHeight - 0.5) * 2;
+      this.container.style.transform = `translate(${cx * -8}px, ${cy * -8}px)`;
+    });
   }
 
   private spawn(): void {

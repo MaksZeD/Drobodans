@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Drobodans</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script>
+      // Set theme before first paint to prevent white flash
+      (function() {
+        var theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+    <style>
+      /* Prevent white flash — inline critical styles */
+      html, body { background: #0a0a1a; }
+      [data-theme="light"], [data-theme="light"] body { background: #f0ead6; }
+    </style>
   </head>
   <body>
     <canvas id="game-canvas"></canvas>
