@@ -99,6 +99,8 @@ export class GameController {
     this.gameState.on('fourthQueen', () => {
       this.uiManager.showFourthQueenAlert();
       this.soundManager.playQueenAlert();
+      // Play glug-glug drinking sound after alert tones
+      setTimeout(() => this.soundManager.playGlugGlug(), 400);
       if (this.currentCardMesh) {
         this.animController.queenAlert(this.currentCardMesh);
       }

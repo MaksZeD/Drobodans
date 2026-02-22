@@ -135,6 +135,56 @@ export class SoundManager {
     });
   }
 
+  playGlugGlug(): void {
+    const ctx = this.getCtx();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const glugs = 5;
+
+    for (let i = 0; i < glugs; i++) {
+      const time = now + i * 0.28;
+
+      // Each glug: a low bubble tone that drops in pitch
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320 - i * 15, time);
+      osc.frequency.exponentialRampToValueAtTime(120, time + 0.18);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.22, time);
+      gain.gain.setValueAtTime(0.05, time + 0.06);
+      gain.gain.setValueAtTime(0.18, time + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(time);
+      osc.stop(time + 0.22);
+
+      // Bubble noise layer
+      const bubbleDur = 0.1;
+      const buf = ctx.createBuffer(1, ctx.sampleRate * bubbleDur, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let j = 0; j < data.length; j++) {
+        data[j] = (Math.random() * 2 - 1) * (1 - j / data.length) * 0.3;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+
+      const bpf = ctx.createBiquadFilter();
+      bpf.type = 'bandpass';
+      bpf.frequency.value = 600 - i * 40;
+      bpf.Q.value = 3;
+
+      const nGain = ctx.createGain();
+      nGain.gain.setValueAtTime(0.12, time + 0.04);
+      nGain.gain.exponentialRampToValueAtTime(0.001, time + 0.04 + bubbleDur);
+
+      noise.connect(bpf).connect(nGain).connect(ctx.destination);
+      noise.start(time + 0.04);
+    }
+  }
+
   playGameOver(): void {
     const ctx = this.getCtx();
     if (!ctx) return;
