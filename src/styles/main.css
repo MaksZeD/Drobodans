@@ -19,6 +19,38 @@ body {
   user-select: none;
 }
 
+/* Background floating decorations */
+#bg-decorations {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-float-item {
+  position: absolute;
+  animation: bgFloat ease-in-out infinite;
+}
+
+.bg-float-inner {
+  background-size: contain;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+@keyframes bgFloat {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(12px, -18px); }
+  40% { transform: translate(-8px, -35px); }
+  60% { transform: translate(18px, -22px); }
+  80% { transform: translate(-5px, -40px); }
+}
+
+/* Three.js canvas */
 #game-canvas {
   position: fixed;
   top: 0;
@@ -29,6 +61,7 @@ body {
   cursor: pointer;
 }
 
+/* UI overlay */
 #ui-overlay {
   position: fixed;
   top: 0;

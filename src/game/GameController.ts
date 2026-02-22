@@ -47,9 +47,8 @@ export class GameController {
 
     this.sceneManager.startLoop(() => {});
 
-    // Shuffle animation on load
+    // Shuffle animation on load (no sound — browser blocks audio before interaction)
     this.isAnimating = true;
-    this.soundManager.playShuffle();
     this.animController.shuffleDeck(this.deckMesh).then(() => {
       this.isAnimating = false;
     });
@@ -69,7 +68,7 @@ export class GameController {
   }
 
   private getCardCenter(): { x: number; y: number } {
-    return { x: 0, y: this.sceneManager.height * 0.05 };
+    return { x: 0, y: this.sceneManager.height * 0.12 };
   }
 
   private getDiscardPosition(): { x: number; y: number } {
