@@ -1,0 +1,70 @@
+/* Small phones (< 360px) */
+@media (max-width: 360px) {
+  .badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .rule-panel {
+    width: 92vw;
+    padding: 14px 16px;
+  }
+
+  .rule-title {
+    font-size: 18px;
+  }
+
+  .rule-description {
+    font-size: 13px;
+  }
+
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+}
+
+/* Tablets (768px+) */
+@media (min-width: 768px) {
+  .badge {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .rule-panel {
+    width: min(400px, 60vw);
+    padding: 24px 32px;
+  }
+
+  .rule-title {
+    font-size: 26px;
+  }
+
+  .rule-description {
+    font-size: 17px;
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 17px;
+  }
+
+  .new-game-btn {
+    font-size: 18px;
+    padding: 14px 40px;
+  }
+}
+
+/* Desktop landscape (1024px+) */
+@media (min-width: 1024px) and (orientation: landscape) {
+  .rule-panel {
+    top: 55%;
+    width: min(440px, 40vw);
+  }
+
+  .tap-prompt {
+    font-size: 18px;
+  }
+}

@@ -1,0 +1,25 @@
+[data-theme="dark"] {
+  --bg: #0a0a1a;
+  --text: #e8e0d0;
+  --text-muted: #9a9080;
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: rgba(0, 0, 0, 0.4);
+  --accent: #C4A265;
+  --accent-glow: rgba(196, 162, 101, 0.3);
+  --alert: #D32F2F;
+  --badge-bg: rgba(26, 58, 92, 0.6);
+}
+
+[data-theme="light"] {
+  --bg: #f0ead6;
+  --text: #2C1810;
+  --text-muted: #6b5d4f;
+  --glass-bg: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: rgba(0, 0, 0, 0.1);
+  --accent: #8B6914;
+  --accent-glow: rgba(139, 105, 20, 0.2);
+  --alert: #C62828;
+  --badge-bg: rgba(44, 24, 16, 0.1);
+}
