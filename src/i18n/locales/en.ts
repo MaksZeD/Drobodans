@@ -23,7 +23,7 @@ export const en: Translation = {
     },
     count: {
       title: 'Count',
-      description: 'Count in a circle. On multiples of 7 — clap. Whoever messes up — drinks.',
+      description: 'Count from 1 in a circle. Can\'t say numbers containing 7 or divisible by 7 — skip them! Whoever says one — drinks.',
     },
     theme: {
       title: 'Theme',

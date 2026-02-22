@@ -25,7 +25,7 @@ export class GameController {
   private isAnimating = false;
   private drawCount = 0;
   private discardPile: CardMesh[] = [];
-  private static readonly MAX_DISCARD = 4;
+  private static readonly MAX_DISCARD = 5;
 
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
@@ -233,20 +233,27 @@ export class GameController {
   }
 
   private arrangeDiscardPile(): void {
-    const baseX = this.sceneManager.width * 0.35;
-    const baseY = -this.sceneManager.height * 0.08;
-    const pileScale = this.getCardScale() * 0.35;
+    const w = this.sceneManager.width;
+    const h = this.sceneManager.height;
+    const pileScale = this.getCardScale() * 0.3;
+    const cardW = CardMesh.WIDTH * pileScale;
+    const spacing = cardW + 6;
+    const count = this.discardPile.length;
+
+    // Bottom-right corner, cards spread horizontally from right
+    const startX = w / 2 - 20 - (count - 1) * spacing;
+    const baseY = -h / 2 + 60;
 
     this.discardPile.forEach((card, i) => {
       const group = card.group;
       group.scale.set(pileScale, pileScale, 1);
       group.position.set(
-        baseX + i * 8,
-        baseY + i * 4,
+        startX + i * spacing,
+        baseY,
         2 + i * 0.5,
       );
-      group.rotation.z = -0.15 + i * 0.08 + (Math.random() - 0.5) * 0.05;
-      card.material.opacity = 0.6 + i * 0.1;
+      group.rotation.z = 0;
+      card.material.opacity = 0.55 + i * 0.1;
     });
   }
 
