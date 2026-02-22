@@ -23,8 +23,12 @@ export class AnimationController {
       const baseScaleX = group.scale.x;
       const baseScaleY = group.scale.y;
 
-      // Start at deck position showing back (default texture)
+      // Start at deck position showing back (default texture), invisible
       group.position.set(deckX, deckY, 20);
+
+      // Fade in the card material to prevent white flash
+      const mat = cardMesh.material;
+      mat.opacity = 0;
 
       this.currentTimeline = gsap.timeline({
         onComplete: () => {
@@ -34,13 +38,19 @@ export class AnimationController {
       });
 
       this.currentTimeline
+        // Fade in immediately
+        .to(mat, {
+          opacity: 1,
+          duration: 0.15,
+          ease: 'power1.out',
+        }, 0)
         // Slide from deck to center
         .to(group.position, {
           x: centerX,
           y: centerY,
           duration: 0.4,
           ease: 'power2.out',
-        })
+        }, 0)
         // First half of flip: squeeze X to near-zero
         .to(group.scale, {
           x: 0.01,
@@ -158,6 +168,141 @@ export class AnimationController {
         opacity: 0,
         duration: duration * 0.85,
         delay: duration * 0.15,
+        ease: 'power1.in',
+        onComplete: () => {
+          scene.remove(mesh);
+          mat.dispose();
+          remaining--;
+          if (remaining === 0) geo.dispose();
+        },
+      });
+    }
+  }
+
+  /** Queen: red + gold crown-like burst rising upward */
+  spawnQueenParticles(scene: THREE.Scene, x: number, y: number, z: number): void {
+    const count = 30;
+    const colors = ['#D32F2F', '#C4A265', '#FFD700', '#FF6B6B', '#E8B923'];
+    const geo = new THREE.PlaneGeometry(4, 4);
+    let remaining = count;
+
+    for (let i = 0; i < count; i++) {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.renderOrder = 22;
+      mesh.position.set(
+        x + (Math.random() - 0.5) * 20,
+        y + Math.random() * 10,
+        z + 2,
+      );
+      scene.add(mesh);
+
+      // Particles rise upward like a crown
+      const spreadX = (Math.random() - 0.5) * 80;
+      const riseY = 60 + Math.random() * 80;
+      const duration = 0.7 + Math.random() * 0.5;
+
+      gsap.to(mesh.position, {
+        x: mesh.position.x + spreadX,
+        y: mesh.position.y + riseY,
+        duration,
+        ease: 'power2.out',
+      });
+
+      gsap.to(mesh.rotation, {
+        z: (Math.random() - 0.5) * 4,
+        duration,
+      });
+
+      gsap.to(mat, {
+        opacity: 0,
+        duration: duration * 0.7,
+        delay: duration * 0.3,
+        ease: 'power1.in',
+        onComplete: () => {
+          scene.remove(mesh);
+          mat.dispose();
+          remaining--;
+          if (remaining === 0) geo.dispose();
+        },
+      });
+    }
+  }
+
+  /** Jack: green swirl particles */
+  spawnJackParticles(scene: THREE.Scene, x: number, y: number, z: number): void {
+    const count = 24;
+    const colors = ['#2E7D32', '#4CAF50', '#81C784', '#C4A265', '#A5D6A7'];
+    const geo = new THREE.PlaneGeometry(3, 3);
+    let remaining = count;
+
+    for (let i = 0; i < count; i++) {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.renderOrder = 22;
+      mesh.position.set(x, y, z + 2);
+      scene.add(mesh);
+
+      // Spiral outward
+      const baseAngle = (i / count) * Math.PI * 2;
+      const radius = 40 + Math.random() * 60;
+      const duration = 0.6 + Math.random() * 0.4;
+
+      gsap.to(mesh.position, {
+        x: x + Math.cos(baseAngle) * radius,
+        y: y + Math.sin(baseAngle) * radius,
+        duration,
+        ease: 'power2.out',
+      });
+
+      gsap.to(mat, {
+        opacity: 0,
+        duration: duration * 0.7,
+        delay: duration * 0.3,
+        ease: 'power1.in',
+        onComplete: () => {
+          scene.remove(mesh);
+          mat.dispose();
+          remaining--;
+          if (remaining === 0) geo.dispose();
+        },
+      });
+    }
+  }
+
+  /** Ace: golden starburst */
+  spawnAceParticles(scene: THREE.Scene, x: number, y: number, z: number): void {
+    const count = 16;
+    const colors = ['#FFD700', '#FFC107', '#FFEB3B', '#C4A265', '#FFE082'];
+    const geo = new THREE.PlaneGeometry(5, 5);
+    let remaining = count;
+
+    for (let i = 0; i < count; i++) {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1.0 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.renderOrder = 22;
+      mesh.position.set(x, y, z + 2);
+      scene.add(mesh);
+
+      // Uniform star rays
+      const angle = (i / count) * Math.PI * 2;
+      const speed = 80 + Math.random() * 40;
+      const duration = 0.5 + Math.random() * 0.3;
+
+      gsap.to(mesh.position, {
+        x: x + Math.cos(angle) * speed,
+        y: y + Math.sin(angle) * speed,
+        duration,
+        ease: 'power3.out',
+      });
+
+      gsap.to(mat, {
+        opacity: 0,
+        duration: duration * 0.6,
+        delay: duration * 0.4,
         ease: 'power1.in',
         onComplete: () => {
           scene.remove(mesh);

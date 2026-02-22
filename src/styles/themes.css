@@ -9,6 +9,8 @@
   --accent-glow: rgba(196, 162, 101, 0.3);
   --alert: #D32F2F;
   --badge-bg: rgba(26, 58, 92, 0.6);
+  --rule-panel-bg: rgba(10, 10, 26, 0.85);
+  --rule-panel-border: rgba(196, 162, 101, 0.4);
 }
 
 [data-theme="light"] {
@@ -22,4 +24,6 @@
   --accent-glow: rgba(139, 105, 20, 0.2);
   --alert: #C62828;
   --badge-bg: rgba(44, 24, 16, 0.1);
+  --rule-panel-bg: rgba(240, 234, 214, 0.88);
+  --rule-panel-border: rgba(139, 105, 20, 0.35);
 }

@@ -14,6 +14,7 @@ export const en: Translation = {
     language: 'UA',
     theme: '◑',
     cardsLeft: 'cards',
+    rulesTitle: 'Card Rules',
   },
   rules: {
     toast: {

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export class CardMesh {
   readonly group: THREE.Group;
   private mesh: THREE.Mesh;
-  private material: THREE.MeshBasicMaterial;
+  readonly material: THREE.MeshBasicMaterial;
   private frontTexture: THREE.Texture;
   private backTexture: THREE.Texture;
 
@@ -17,10 +17,11 @@ export class CardMesh {
 
     const geo = new THREE.PlaneGeometry(CardMesh.WIDTH, CardMesh.HEIGHT);
 
-    // Single plane, starts showing back texture
+    // Single plane, starts showing back texture, invisible until animated
     this.material = new THREE.MeshBasicMaterial({
       map: backTexture,
       transparent: true,
+      opacity: 0,
     });
     this.mesh = new THREE.Mesh(geo, this.material);
     this.mesh.renderOrder = 10;

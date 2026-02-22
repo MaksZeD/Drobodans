@@ -34,6 +34,7 @@ export interface Translation {
     language: string;
     theme: string;
     cardsLeft: string;
+    rulesTitle: string;
   };
   rules: Record<RuleKey, {
     title: string;

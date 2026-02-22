@@ -23,6 +23,7 @@ export class GameController {
   private deckMesh!: DeckMesh;
   private currentCardMesh: CardMesh | null = null;
   private isAnimating = false;
+  private drawCount = 0;
 
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
@@ -190,11 +191,30 @@ export class GameController {
         this.animController.spawnFlipParticles(
           this.sceneManager.scene, center.x, center.y, GameController.CARD_Z,
         );
+        // Special particles for face cards and aces
+        if (card.value === 'Q') {
+          this.animController.spawnQueenParticles(
+            this.sceneManager.scene, center.x, center.y, GameController.CARD_Z,
+          );
+        } else if (card.value === 'J') {
+          this.animController.spawnJackParticles(
+            this.sceneManager.scene, center.x, center.y, GameController.CARD_Z,
+          );
+        } else if (card.value === 'A') {
+          this.animController.spawnAceParticles(
+            this.sceneManager.scene, center.x, center.y, GameController.CARD_Z,
+          );
+        }
       },
     );
 
     this.gameState.processCard(card, this.deck.remaining);
     this.uiManager.showRule(card);
+
+    this.drawCount++;
+    if (this.drawCount >= 3) {
+      this.uiManager.hideTapPrompt();
+    }
 
     this.isAnimating = false;
   }
@@ -209,6 +229,7 @@ export class GameController {
       this.currentCardMesh = null;
     }
 
+    this.drawCount = 0;
     this.deck.reset();
     this.gameState.reset();
     this.deckMesh.updateCount(this.deck.remaining);

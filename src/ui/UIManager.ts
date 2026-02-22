@@ -1,7 +1,19 @@
-import type { Card, GameStateData } from '../types/index.js';
+import type { Card, GameStateData, RuleKey } from '../types/index.js';
 import { t, toggleLocale, onChange, getLocale } from '../i18n/i18n.js';
 import type { ThemeManager } from './ThemeManager.js';
 import type { SoundManager } from '../audio/SoundManager.js';
+
+const RULE_KEYS: { value: string; key: RuleKey }[] = [
+  { value: '6', key: 'toast' },
+  { value: '7', key: 'count' },
+  { value: '8', key: 'theme' },
+  { value: '9', key: 'skip' },
+  { value: '10', key: 'drinkSelf' },
+  { value: 'J', key: 'jackQuestion' },
+  { value: 'Q', key: 'queenCup' },
+  { value: 'K', key: 'kingBuddy' },
+  { value: 'A', key: 'aceImmunity' },
+];
 
 export class UIManager {
   private overlay: HTMLElement;
@@ -16,7 +28,11 @@ export class UIManager {
   private langBtn!: HTMLElement;
   private soundBtn!: HTMLElement;
   private themeBtn!: HTMLElement;
+  private helpBtn!: HTMLElement;
   private gameOverBanner!: HTMLElement;
+  private rulesModal!: HTMLElement;
+  private rulesModalTitle!: HTMLElement;
+  private rulesModalBody!: HTMLElement;
 
   private onNewGame: () => void;
   private themeManager: ThemeManager;
@@ -82,9 +98,48 @@ export class UIManager {
       this.themeManager.toggle();
     });
 
-    rightControls.append(this.langBtn, this.soundBtn, this.themeBtn);
+    this.helpBtn = document.createElement('button');
+    this.helpBtn.className = 'icon-btn glass-panel';
+    this.helpBtn.textContent = '?';
+    this.helpBtn.addEventListener('click', () => {
+      this.toggleRulesModal();
+    });
+
+    rightControls.append(this.helpBtn, this.langBtn, this.soundBtn, this.themeBtn);
 
     topBar.append(leftBadges, rightControls);
+
+    // Rules reference modal
+    this.rulesModal = document.createElement('div');
+    this.rulesModal.className = 'rules-modal-overlay';
+    this.rulesModal.addEventListener('click', (e) => {
+      if (e.target === this.rulesModal) {
+        this.rulesModal.classList.remove('visible');
+      }
+    });
+
+    const modalContent = document.createElement('div');
+    modalContent.className = 'rules-modal glass-panel';
+
+    this.rulesModalTitle = document.createElement('h2');
+    this.rulesModalTitle.className = 'rules-modal-title';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'rules-modal-close';
+    closeBtn.textContent = '\u2715';
+    closeBtn.addEventListener('click', () => {
+      this.rulesModal.classList.remove('visible');
+    });
+
+    const header = document.createElement('div');
+    header.className = 'rules-modal-header';
+    header.append(this.rulesModalTitle, closeBtn);
+
+    this.rulesModalBody = document.createElement('div');
+    this.rulesModalBody.className = 'rules-modal-body';
+
+    modalContent.append(header, this.rulesModalBody);
+    this.rulesModal.appendChild(modalContent);
 
     // Rule panel
     this.rulePanel = document.createElement('div');
@@ -112,13 +167,13 @@ export class UIManager {
       this.onNewGame();
     });
 
-    this.overlay.append(topBar, this.rulePanel, this.gameOverBanner, this.tapPrompt, this.newGameBtn);
+    this.overlay.append(topBar, this.rulePanel, this.gameOverBanner, this.tapPrompt, this.newGameBtn, this.rulesModal);
   }
 
   private updateTexts(): void {
-    this.deckCounter.textContent = `${t('ui.deckCounter')}: 36`;
-    this.queenCounter.textContent = `${t('ui.queensCounter')}: 0/4`;
-    this.jackBadge.textContent = `${t('ui.jackHolder')}: ${t('ui.noJackHolder')}`;
+    this.deckCounter.textContent = `\u2660 ${t('ui.deckCounter')}: 36`;
+    this.queenCounter.textContent = `\u2655 ${t('ui.queensCounter')}: 0/4`;
+    this.jackBadge.textContent = `\u2753 ${t('ui.jackHolder')}: ${t('ui.noJackHolder')}`;
     this.langBtn.textContent = t('ui.language');
     this.tapPrompt.textContent = t('ui.tapPrompt');
     this.newGameBtn.textContent = t('ui.newGame');
@@ -131,6 +186,31 @@ export class UIManager {
     }
 
     document.documentElement.lang = getLocale() === 'ua' ? 'uk' : 'en';
+
+    // Update rules modal
+    this.rulesModalTitle.textContent = t('ui.rulesTitle');
+    this.rulesModalBody.innerHTML = '';
+    for (const { value, key } of RULE_KEYS) {
+      const row = document.createElement('div');
+      row.className = 'rules-modal-row';
+
+      const val = document.createElement('span');
+      val.className = 'rules-modal-value';
+      val.textContent = value;
+
+      const info = document.createElement('div');
+      info.className = 'rules-modal-info';
+
+      const title = document.createElement('strong');
+      title.textContent = t(`rules.${key}.title`);
+
+      const desc = document.createElement('span');
+      desc.textContent = t(`rules.${key}.description`);
+
+      info.append(title, desc);
+      row.append(val, info);
+      this.rulesModalBody.appendChild(row);
+    }
   }
 
   showRule(card: Card): void {
@@ -149,14 +229,14 @@ export class UIManager {
   }
 
   updateState(state: GameStateData): void {
-    this.deckCounter.textContent = `${t('ui.deckCounter')}: ${state.remainingCards}`;
-    this.queenCounter.textContent = `${t('ui.queensCounter')}: ${state.queenCount}/4`;
+    this.deckCounter.textContent = `\u2660 ${t('ui.deckCounter')}: ${state.remainingCards}`;
+    this.queenCounter.textContent = `\u2655 ${t('ui.queensCounter')}: ${state.queenCount}/4`;
 
     if (state.jackHolder) {
-      this.jackBadge.textContent = `${t('ui.jackHolder')}: \u2726`;
+      this.jackBadge.textContent = `\u2753 ${t('ui.jackHolder')}: \u2726`;
       this.jackBadge.classList.add('active');
     } else {
-      this.jackBadge.textContent = `${t('ui.jackHolder')}: ${t('ui.noJackHolder')}`;
+      this.jackBadge.textContent = `\u2753 ${t('ui.jackHolder')}: ${t('ui.noJackHolder')}`;
       this.jackBadge.classList.remove('active');
     }
 
@@ -184,7 +264,15 @@ export class UIManager {
     this.updateTexts();
   }
 
+  hideTapPrompt(): void {
+    this.tapPrompt.classList.remove('visible');
+  }
+
   showTapPrompt(): void {
     this.tapPrompt.classList.add('visible');
+  }
+
+  private toggleRulesModal(): void {
+    this.rulesModal.classList.toggle('visible');
   }
 }
