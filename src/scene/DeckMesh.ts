@@ -19,6 +19,7 @@ export class DeckMesh {
       );
       mesh.position.y = i * DeckMesh.LAYER_OFFSET_Y;
       mesh.position.z = i * DeckMesh.LAYER_OFFSET_Z;
+      mesh.renderOrder = 0;
       this.layers.push(mesh);
       this.group.add(mesh);
     }

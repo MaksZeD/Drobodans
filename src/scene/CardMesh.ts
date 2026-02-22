@@ -18,6 +18,7 @@ export class CardMesh {
       new THREE.MeshBasicMaterial({ map: frontTexture, transparent: true })
     );
     this.frontMesh.position.z = 0.01;
+    this.frontMesh.renderOrder = 10;
 
     this.backMesh = new THREE.Mesh(
       geo,
@@ -25,6 +26,7 @@ export class CardMesh {
     );
     this.backMesh.rotation.y = Math.PI;
     this.backMesh.position.z = -0.01;
+    this.backMesh.renderOrder = 10;
 
     this.group.add(this.frontMesh, this.backMesh);
   }
