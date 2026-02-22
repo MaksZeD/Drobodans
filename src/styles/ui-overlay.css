@@ -23,6 +23,13 @@
   line-height: 1.6;
 }
 
+.badge-icon {
+  vertical-align: middle;
+  image-rendering: pixelated;
+  margin-right: 4px;
+  display: inline-block;
+}
+
 .badge.active {
   color: var(--accent);
   border-color: var(--accent);

@@ -3,6 +3,137 @@ import { t, toggleLocale, onChange, getLocale } from '../i18n/i18n.js';
 import type { ThemeManager } from './ThemeManager.js';
 import type { SoundManager } from '../audio/SoundManager.js';
 
+// --- Pixel art icon generators (16x16 canvases) ---
+
+function generateDeckIcon(): string {
+  const c = document.createElement('canvas');
+  c.width = 16; c.height = 16;
+  const x = c.getContext('2d')!;
+
+  // Back card (offset)
+  x.fillStyle = '#1A3A5C';
+  x.fillRect(1, 1, 10, 14);
+  x.strokeStyle = '#C4A265';
+  x.lineWidth = 1;
+  x.strokeRect(1.5, 1.5, 9, 13);
+
+  // Front card
+  x.fillStyle = '#1A3A5C';
+  x.fillRect(4, 0, 11, 14);
+  x.strokeStyle = '#C4A265';
+  x.lineWidth = 1;
+  x.strokeRect(4.5, 0.5, 10, 13);
+
+  // Diamond pattern on front card
+  x.fillStyle = '#C4A265';
+  x.fillRect(8, 3, 2, 2);
+  x.fillRect(7, 4, 1, 1);
+  x.fillRect(11, 4, 1, 1);
+  x.fillRect(8, 5, 2, 1);
+  x.fillRect(8, 7, 2, 2);
+  x.fillRect(7, 8, 1, 1);
+  x.fillRect(11, 8, 1, 1);
+  x.fillRect(8, 9, 2, 1);
+
+  return c.toDataURL();
+}
+
+function generateCrownIcon(): string {
+  const c = document.createElement('canvas');
+  c.width = 16; c.height = 16;
+  const x = c.getContext('2d')!;
+
+  // Crown body
+  x.fillStyle = '#C4A265';
+  // Base
+  x.fillRect(2, 10, 12, 3);
+  // Left spike
+  x.fillRect(2, 4, 2, 6);
+  x.fillRect(3, 3, 1, 1);
+  // Center spike
+  x.fillRect(7, 2, 2, 8);
+  x.fillRect(6, 3, 1, 1);
+  x.fillRect(9, 3, 1, 1);
+  // Right spike
+  x.fillRect(12, 4, 2, 6);
+  x.fillRect(12, 3, 1, 1);
+  // Fill between spikes
+  x.fillRect(4, 7, 3, 3);
+  x.fillRect(9, 7, 3, 3);
+  x.fillRect(4, 8, 12, 2);
+
+  // Jewels
+  x.fillStyle = '#D32F2F';
+  x.fillRect(3, 5, 1, 1);
+  x.fillRect(8, 3, 1, 1);
+  x.fillRect(12, 5, 1, 1);
+
+  // Base highlight
+  x.fillStyle = '#FFD700';
+  x.fillRect(3, 11, 10, 1);
+
+  return c.toDataURL();
+}
+
+function generateJesterIcon(): string {
+  const c = document.createElement('canvas');
+  c.width = 16; c.height = 16;
+  const x = c.getContext('2d')!;
+
+  // Hat body
+  x.fillStyle = '#4CAF50';
+  x.fillRect(3, 6, 10, 4);
+  x.fillRect(4, 5, 8, 1);
+
+  // Left prong
+  x.fillRect(2, 3, 3, 3);
+  x.fillRect(1, 1, 2, 2);
+  // Right prong
+  x.fillRect(11, 3, 3, 3);
+  x.fillRect(13, 1, 2, 2);
+  // Center prong
+  x.fillRect(6, 2, 4, 3);
+  x.fillRect(7, 1, 2, 1);
+
+  // Bells (gold circles)
+  x.fillStyle = '#FFD700';
+  x.fillRect(1, 0, 2, 1);
+  x.fillRect(0, 1, 1, 1);
+  x.fillRect(3, 1, 1, 1);
+  x.fillRect(7, 0, 2, 1);
+  x.fillRect(13, 0, 2, 1);
+  x.fillRect(12, 1, 1, 1);
+  x.fillRect(15, 1, 1, 1);
+
+  // Brim
+  x.fillStyle = '#2E7D32';
+  x.fillRect(2, 10, 12, 2);
+
+  // Face area
+  x.fillStyle = '#F0D0A0';
+  x.fillRect(4, 12, 8, 3);
+
+  // Eyes
+  x.fillStyle = '#1B1B1B';
+  x.fillRect(5, 13, 2, 1);
+  x.fillRect(9, 13, 2, 1);
+
+  // Smile
+  x.fillStyle = '#D32F2F';
+  x.fillRect(7, 14, 2, 1);
+
+  return c.toDataURL();
+}
+
+function createPixelIcon(dataUrl: string): HTMLImageElement {
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  img.className = 'badge-icon';
+  img.width = 16;
+  img.height = 16;
+  return img;
+}
+
 const RULE_KEYS: { value: string; key: RuleKey }[] = [
   { value: '6', key: 'toast' },
   { value: '7', key: 'count' },
@@ -37,6 +168,11 @@ export class UIManager {
   private onNewGame: () => void;
   private themeManager: ThemeManager;
   private soundManager: SoundManager;
+
+  // Pixel art icon data URLs (generated once)
+  private deckIconUrl = generateDeckIcon();
+  private crownIconUrl = generateCrownIcon();
+  private jesterIconUrl = generateJesterIcon();
 
   constructor(overlay: HTMLElement, themeManager: ThemeManager, soundManager: SoundManager, onNewGame: () => void) {
     this.overlay = overlay;
@@ -170,10 +306,16 @@ export class UIManager {
     this.overlay.append(topBar, this.rulePanel, this.gameOverBanner, this.tapPrompt, this.newGameBtn, this.rulesModal);
   }
 
+  private setBadgeContent(badge: HTMLElement, iconUrl: string, text: string): void {
+    badge.innerHTML = '';
+    badge.appendChild(createPixelIcon(iconUrl));
+    badge.appendChild(document.createTextNode(` ${text}`));
+  }
+
   private updateTexts(): void {
-    this.deckCounter.textContent = `\u2660 ${t('ui.deckCounter')}: 36`;
-    this.queenCounter.textContent = `\u2655 ${t('ui.queensCounter')}: 0/4`;
-    this.jackBadge.textContent = `\u2753 ${t('ui.jackHolder')}: ${t('ui.noJackHolder')}`;
+    this.setBadgeContent(this.deckCounter, this.deckIconUrl, `${t('ui.deckCounter')}: 36`);
+    this.setBadgeContent(this.queenCounter, this.crownIconUrl, `${t('ui.queensCounter')}: 0/4`);
+    this.setBadgeContent(this.jackBadge, this.jesterIconUrl, `${t('ui.jackHolder')}: ${t('ui.noJackHolder')}`);
     this.langBtn.textContent = t('ui.language');
     this.tapPrompt.textContent = t('ui.tapPrompt');
     this.newGameBtn.textContent = t('ui.newGame');
@@ -229,14 +371,14 @@ export class UIManager {
   }
 
   updateState(state: GameStateData): void {
-    this.deckCounter.textContent = `\u2660 ${t('ui.deckCounter')}: ${state.remainingCards}`;
-    this.queenCounter.textContent = `\u2655 ${t('ui.queensCounter')}: ${state.queenCount}/4`;
+    this.setBadgeContent(this.deckCounter, this.deckIconUrl, `${t('ui.deckCounter')}: ${state.remainingCards}`);
+    this.setBadgeContent(this.queenCounter, this.crownIconUrl, `${t('ui.queensCounter')}: ${state.queenCount}/4`);
 
     if (state.jackHolder) {
-      this.jackBadge.textContent = `\u2753 ${t('ui.jackHolder')}: \u2726`;
+      this.setBadgeContent(this.jackBadge, this.jesterIconUrl, `${t('ui.jackHolder')}: \u2726`);
       this.jackBadge.classList.add('active');
     } else {
-      this.jackBadge.textContent = `\u2753 ${t('ui.jackHolder')}: ${t('ui.noJackHolder')}`;
+      this.setBadgeContent(this.jackBadge, this.jesterIconUrl, `${t('ui.jackHolder')}: ${t('ui.noJackHolder')}`);
       this.jackBadge.classList.remove('active');
     }
 
