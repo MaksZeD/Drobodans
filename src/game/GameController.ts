@@ -182,10 +182,15 @@ export class GameController {
     const deckPos = this.getDeckPosition();
     const center = this.getCardCenter();
 
-    // Animate draw + flip, play flip sound at midpoint, THEN show rule
+    // Animate draw + flip, play flip sound + particles at midpoint, THEN show rule
     await this.animController.drawCard(
       cardMesh, deckPos.x, deckPos.y, center.x, center.y,
-      () => this.soundManager.playCardFlip(),
+      () => {
+        this.soundManager.playCardFlip();
+        this.animController.spawnFlipParticles(
+          this.sceneManager.scene, center.x, center.y, GameController.CARD_Z,
+        );
+      },
     );
 
     this.gameState.processCard(card, this.deck.remaining);

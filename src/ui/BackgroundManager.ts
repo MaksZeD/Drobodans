@@ -31,7 +31,7 @@ export class BackgroundManager {
       inner.style.width = isCard ? '56px' : '38px';
       inner.style.height = isCard ? '84px' : '56px';
       inner.style.transform = `rotate(${Math.floor(Math.random() * 360)}deg)`;
-      inner.style.opacity = `${0.02 + Math.random() * 0.04}`;
+      inner.style.opacity = `${0.08 + Math.random() * 0.07}`;
 
       wrapper.appendChild(inner);
       this.container.appendChild(wrapper);

@@ -1,7 +1,7 @@
 import gsap from 'gsap';
+import * as THREE from 'three';
 import type { CardMesh } from '../scene/CardMesh.js';
 import type { DeckMesh } from '../scene/DeckMesh.js';
-import type * as THREE from 'three';
 
 export class AnimationController {
   private currentTimeline: gsap.core.Timeline | null = null;
@@ -125,6 +125,50 @@ export class AnimationController {
     });
   }
 
+  spawnFlipParticles(scene: THREE.Scene, x: number, y: number, z: number): void {
+    const count = 22;
+    const colors = ['#C4A265', '#F5E6C8', '#D32F2F', '#1A3A5C', '#FFD700'];
+    const geo = new THREE.PlaneGeometry(3, 3);
+    let remaining = count;
+
+    for (let i = 0; i < count; i++) {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.renderOrder = 20;
+      mesh.position.set(
+        x + (Math.random() - 0.5) * 30,
+        y + (Math.random() - 0.5) * 30,
+        z + 1,
+      );
+      scene.add(mesh);
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 50 + Math.random() * 90;
+      const duration = 0.5 + Math.random() * 0.4;
+
+      gsap.to(mesh.position, {
+        x: mesh.position.x + Math.cos(angle) * speed,
+        y: mesh.position.y + Math.sin(angle) * speed - 40,
+        duration,
+        ease: 'power2.out',
+      });
+
+      gsap.to(mat, {
+        opacity: 0,
+        duration: duration * 0.85,
+        delay: duration * 0.15,
+        ease: 'power1.in',
+        onComplete: () => {
+          scene.remove(mesh);
+          mat.dispose();
+          remaining--;
+          if (remaining === 0) geo.dispose();
+        },
+      });
+    }
+  }
+
   shuffleDeck(deckMesh: DeckMesh): Promise<void> {
     return new Promise((resolve) => {
       const layers = deckMesh.group.children as THREE.Mesh[];
@@ -137,7 +181,6 @@ export class AnimationController {
 
       const count = visible.length;
 
-      // Store original positions
       const originals = visible.map((l) => ({
         x: l.position.x,
         y: l.position.y,
@@ -146,7 +189,7 @@ export class AnimationController {
 
       const tl = gsap.timeline({ onComplete: resolve });
 
-      // --- Phase 1: Cascade spread into arc (0 – ~0.9s) ---
+      // --- Phase 1: Cascade spread into arc ---
       visible.forEach((layer, i) => {
         const t = count > 1 ? i / (count - 1) : 0.5;
         const angle = Math.PI * 0.25 + t * Math.PI * 0.5;
@@ -167,7 +210,7 @@ export class AnimationController {
         }, delay);
       });
 
-      // --- Phase 2: Swirl to opposite positions (0.9 – ~1.5s) ---
+      // --- Phase 2: Swirl to opposite positions ---
       const p2 = count * 0.06 + 0.5;
       visible.forEach((layer, i) => {
         const t = count > 1 ? i / (count - 1) : 0.5;
@@ -188,7 +231,7 @@ export class AnimationController {
         }, p2 + i * 0.03);
       });
 
-      // --- Phase 3: Gather back into stack, reverse order (1.5 – ~2.5s) ---
+      // --- Phase 3: Gather back into stack, reverse order ---
       const p3 = p2 + count * 0.03 + 0.5;
       [...visible].reverse().forEach((layer, ri) => {
         const origIdx = count - 1 - ri;
@@ -207,7 +250,7 @@ export class AnimationController {
         }, p3 + ri * 0.05);
       });
 
-      // --- Phase 4: Stack settle bounce (2.5 – ~2.9s) ---
+      // --- Phase 4: Stack settle bounce ---
       const p4 = p3 + count * 0.05 + 0.45;
       const baseScaleY = deckMesh.group.scale.y;
 
