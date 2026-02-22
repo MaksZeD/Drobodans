@@ -141,9 +141,10 @@ export class CardTextureGenerator {
     canvas.height = CARD_H;
     const ctx = canvas.getContext('2d')!;
 
-    // Dark blue fill
+    // Dark blue fill with rounded corners
     ctx.fillStyle = BACK_BLUE;
-    ctx.fillRect(0, 0, CARD_W, CARD_H);
+    this.roundRect(ctx, 0, 0, CARD_W, CARD_H, 8);
+    ctx.fill();
 
     // Rounded border
     ctx.strokeStyle = BACK_GOLD;

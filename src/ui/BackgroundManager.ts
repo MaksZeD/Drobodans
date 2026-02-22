@@ -9,7 +9,7 @@ export class BackgroundManager {
   }
 
   private spawn(): void {
-    const count = 14 + Math.floor(Math.random() * 8);
+    const count = 22 + Math.floor(Math.random() * 10);
 
     for (let i = 0; i < count; i++) {
       const isCard = Math.random() > 0.4;
@@ -28,10 +28,10 @@ export class BackgroundManager {
       inner.className = 'bg-float-inner';
       const dataUrl = isCard ? this.generateCardBack() : this.generateBeer();
       inner.style.backgroundImage = `url(${dataUrl})`;
-      inner.style.width = isCard ? '40px' : '28px';
-      inner.style.height = isCard ? '60px' : '42px';
+      inner.style.width = isCard ? '56px' : '38px';
+      inner.style.height = isCard ? '84px' : '56px';
       inner.style.transform = `rotate(${Math.floor(Math.random() * 360)}deg)`;
-      inner.style.opacity = `${0.04 + Math.random() * 0.06}`;
+      inner.style.opacity = `${0.02 + Math.random() * 0.04}`;
 
       wrapper.appendChild(inner);
       this.container.appendChild(wrapper);
