@@ -18,8 +18,9 @@ export class SceneManager {
 
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: false,
+      antialias: true,
       alpha: true,
+      logarithmicDepthBuffer: true,
     });
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(w, h);

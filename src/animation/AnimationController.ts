@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import type { CardMesh } from '../scene/CardMesh.js';
 import type { DeckMesh } from '../scene/DeckMesh.js';
+import type * as THREE from 'three';
 
 export class AnimationController {
   private currentTimeline: gsap.core.Timeline | null = null;
@@ -14,11 +15,13 @@ export class AnimationController {
   ): Promise<void> {
     return new Promise((resolve) => {
       const group = cardMesh.group;
+      const baseScaleX = group.scale.x;
+      const baseScaleY = group.scale.y;
 
-      // Start at deck position, showing back (rotation.y = 0 means back is showing)
-      group.position.set(deckX, deckY, 10);
-      group.rotation.y = 0;
-      group.scale.set(group.scale.x, group.scale.y, 1);
+      // Start at deck position showing BACK (rotation.y = PI → backMesh faces camera)
+      group.position.set(deckX, deckY, 20);
+      group.rotation.y = Math.PI;
+      group.scale.set(baseScaleX, baseScaleY, 1);
 
       this.currentTimeline = gsap.timeline({
         onComplete: () => {
@@ -37,21 +40,21 @@ export class AnimationController {
         })
         // Scale up slightly
         .to(group.scale, {
-          x: group.scale.x * 1.15,
-          y: group.scale.y * 1.15,
+          x: baseScaleX * 1.15,
+          y: baseScaleY * 1.15,
           duration: 0.15,
           ease: 'power1.out',
         })
-        // Flip to reveal front
+        // Flip to reveal FRONT (PI → 2*PI, continues same rotation direction)
         .to(group.rotation, {
-          y: Math.PI,
+          y: Math.PI * 2,
           duration: 0.5,
           ease: 'power2.inOut',
         })
         // Settle scale
         .to(group.scale, {
-          x: group.scale.x,
-          y: group.scale.y,
+          x: baseScaleX,
+          y: baseScaleY,
           duration: 0.3,
           ease: 'power1.inOut',
         });
@@ -65,10 +68,12 @@ export class AnimationController {
   ): Promise<void> {
     return new Promise((resolve) => {
       const group = cardMesh.group;
+      const halfX = group.scale.x * 0.5;
+      const halfY = group.scale.y * 0.5;
 
       gsap.to(group.scale, {
-        x: group.scale.x * 0.5,
-        y: group.scale.y * 0.5,
+        x: halfX,
+        y: halfY,
         duration: 0.3,
         ease: 'power2.in',
       });
@@ -109,6 +114,77 @@ export class AnimationController {
         repeat: 5,
         ease: 'none',
         onComplete: resolve,
+      });
+    });
+  }
+
+  shuffleDeck(deckMesh: DeckMesh): Promise<void> {
+    return new Promise((resolve) => {
+      const layers = deckMesh.group.children as THREE.Mesh[];
+      const visible = layers.filter((l) => l.visible);
+
+      if (visible.length === 0) {
+        resolve();
+        return;
+      }
+
+      // Store original positions
+      const originals = visible.map((l) => ({
+        x: l.position.x,
+        y: l.position.y,
+        z: l.position.z,
+      }));
+
+      const tl = gsap.timeline({ onComplete: resolve });
+
+      // Phase 1: Scatter cards outward
+      visible.forEach((layer, i) => {
+        const angle = ((i / visible.length) * Math.PI * 2) - Math.PI / 2;
+        const radius = 30 + Math.random() * 20;
+
+        tl.to(
+          layer.position,
+          {
+            x: Math.cos(angle) * radius,
+            y: originals[i].y + Math.sin(angle) * radius,
+            duration: 0.3,
+            ease: 'power2.out',
+          },
+          i * 0.025,
+        );
+        tl.to(
+          layer.rotation,
+          {
+            z: (Math.random() - 0.5) * 0.6,
+            duration: 0.3,
+            ease: 'power2.out',
+          },
+          i * 0.025,
+        );
+      });
+
+      // Phase 2: Gather back into stack
+      visible.forEach((layer, i) => {
+        tl.to(
+          layer.position,
+          {
+            x: originals[i].x,
+            y: originals[i].y,
+            z: originals[i].z,
+            duration: 0.35,
+            ease: 'back.out(1.7)',
+          },
+          0.5 + i * 0.025,
+        );
+        tl.to(
+          layer.rotation,
+          {
+            z: 0,
+            duration: 0.35,
+            ease: 'power2.in',
+          },
+          0.5 + i * 0.025,
+        );
       });
     });
   }

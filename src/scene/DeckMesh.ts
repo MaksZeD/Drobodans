@@ -3,9 +3,9 @@ import * as THREE from 'three';
 export class DeckMesh {
   readonly group: THREE.Group;
   private layers: THREE.Mesh[] = [];
-  private static readonly MAX_LAYERS = 8;
-  private static readonly LAYER_OFFSET_Y = 1.5;
-  private static readonly LAYER_OFFSET_Z = 0.5;
+  private static readonly MAX_LAYERS = 10;
+  private static readonly LAYER_OFFSET_Y = 2.0;
+  private static readonly LAYER_OFFSET_Z = 1.5;
 
   constructor(backTexture: THREE.Texture, cardWidth: number, cardHeight: number) {
     this.group = new THREE.Group();
@@ -26,8 +26,9 @@ export class DeckMesh {
   }
 
   updateCount(remaining: number): void {
-    const visibleLayers = Math.ceil(
-      (remaining / 36) * DeckMesh.MAX_LAYERS
+    const visibleLayers = Math.max(
+      1,
+      Math.round((remaining / 36) * DeckMesh.MAX_LAYERS)
     );
     this.layers.forEach((layer, i) => {
       layer.visible = i < visibleLayers;

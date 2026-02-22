@@ -25,6 +25,8 @@ export class GameController {
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
 
+  private static readonly CARD_Z = 20;
+
   constructor(canvas: HTMLCanvasElement, overlay: HTMLElement) {
     this.sceneManager = new SceneManager(canvas);
     this.textureGen = new CardTextureGenerator();
@@ -42,20 +44,24 @@ export class GameController {
     this.setupInput(canvas);
 
     this.sceneManager.startLoop(() => {});
+
+    // Play shuffle animation on load
+    this.isAnimating = true;
+    this.animController.shuffleDeck(this.deckMesh).then(() => {
+      this.isAnimating = false;
+    });
   }
 
   private getCardScale(): number {
     const w = this.sceneManager.width;
     const h = this.sceneManager.height;
     const minDim = Math.min(w, h);
-    // Scale cards so they fit nicely on screen
     if (minDim < 400) return 1.5;
     if (minDim < 768) return 2.0;
     return 2.5;
   }
 
   private getDeckPosition(): { x: number; y: number } {
-    // Deck sits slightly below center
     return { x: 0, y: -this.sceneManager.height * 0.08 };
   }
 
@@ -92,7 +98,6 @@ export class GameController {
       }
     });
 
-    // Handle resize
     window.addEventListener('resize', () => {
       const scale = this.getCardScale();
       this.deckMesh.setScale(scale);
@@ -101,7 +106,7 @@ export class GameController {
       if (this.currentCardMesh) {
         this.currentCardMesh.setScale(scale);
         const center = this.getCardCenter();
-        this.currentCardMesh.group.position.set(center.x, center.y, 10);
+        this.currentCardMesh.group.position.set(center.x, center.y, GameController.CARD_Z);
       }
     });
   }
@@ -110,7 +115,6 @@ export class GameController {
     const handleInput = (clientX: number, clientY: number): void => {
       if (this.isAnimating || this.gameState.isGameOver) return;
 
-      // Convert screen to NDC
       this.pointer.x = (clientX / this.sceneManager.width) * 2 - 1;
       this.pointer.y = -(clientY / this.sceneManager.height) * 2 + 1;
 
@@ -141,10 +145,9 @@ export class GameController {
     if (this.isAnimating || this.deck.isEmpty) return;
     this.isAnimating = true;
 
-    // Deck bounce feedback
     this.animController.deckBounce(this.deckMesh);
 
-    // Dismiss previous card if exists
+    // Dismiss previous card
     if (this.currentCardMesh) {
       const discard = this.getDiscardPosition();
       await this.animController.dismissCard(this.currentCardMesh, discard.x, discard.y);
@@ -154,7 +157,6 @@ export class GameController {
       this.uiManager.hideRule();
     }
 
-    // Draw new card
     const card = this.deck.draw();
     if (!card) {
       this.isAnimating = false;
@@ -172,12 +174,10 @@ export class GameController {
     const deckPos = this.getDeckPosition();
     const center = this.getCardCenter();
 
+    // Animate draw + flip, THEN show rule
     await this.animController.drawCard(cardMesh, deckPos.x, deckPos.y, center.x, center.y);
 
-    // Process game state
     this.gameState.processCard(card, this.deck.remaining);
-
-    // Show rule
     this.uiManager.showRule(card);
 
     this.isAnimating = false;
@@ -187,19 +187,21 @@ export class GameController {
     this.animController.kill();
     this.isAnimating = false;
 
-    // Remove current card
     if (this.currentCardMesh) {
       this.sceneManager.scene.remove(this.currentCardMesh.group);
       this.currentCardMesh.dispose();
       this.currentCardMesh = null;
     }
 
-    // Reset deck and state
     this.deck.reset();
     this.gameState.reset();
     this.deckMesh.updateCount(this.deck.remaining);
-
-    // Reset UI
     this.uiManager.resetUI();
+
+    // Play shuffle animation
+    this.isAnimating = true;
+    this.animController.shuffleDeck(this.deckMesh).then(() => {
+      this.isAnimating = false;
+    });
   }
 }
