@@ -1,6 +1,7 @@
 import type { Card, GameStateData } from '../types/index.js';
 import { t, toggleLocale, onChange, getLocale } from '../i18n/i18n.js';
 import type { ThemeManager } from './ThemeManager.js';
+import type { SoundManager } from '../audio/SoundManager.js';
 
 export class UIManager {
   private overlay: HTMLElement;
@@ -13,15 +14,18 @@ export class UIManager {
   private tapPrompt!: HTMLElement;
   private newGameBtn!: HTMLElement;
   private langBtn!: HTMLElement;
+  private soundBtn!: HTMLElement;
   private themeBtn!: HTMLElement;
   private gameOverBanner!: HTMLElement;
 
   private onNewGame: () => void;
   private themeManager: ThemeManager;
+  private soundManager: SoundManager;
 
-  constructor(overlay: HTMLElement, themeManager: ThemeManager, onNewGame: () => void) {
+  constructor(overlay: HTMLElement, themeManager: ThemeManager, soundManager: SoundManager, onNewGame: () => void) {
     this.overlay = overlay;
     this.themeManager = themeManager;
+    this.soundManager = soundManager;
     this.onNewGame = onNewGame;
     this.createElements();
     this.updateTexts();
@@ -63,14 +67,22 @@ export class UIManager {
       toggleLocale();
     });
 
+    this.soundBtn = document.createElement('button');
+    this.soundBtn.className = 'icon-btn glass-panel';
+    this.soundBtn.textContent = '\u266A';
+    this.soundBtn.addEventListener('click', () => {
+      const muted = this.soundManager.toggleMute();
+      this.soundBtn.classList.toggle('muted', muted);
+    });
+
     this.themeBtn = document.createElement('button');
     this.themeBtn.className = 'icon-btn glass-panel';
-    this.themeBtn.textContent = '◑';
+    this.themeBtn.textContent = '\u25D1';
     this.themeBtn.addEventListener('click', () => {
       this.themeManager.toggle();
     });
 
-    rightControls.append(this.langBtn, this.themeBtn);
+    rightControls.append(this.langBtn, this.soundBtn, this.themeBtn);
 
     topBar.append(leftBadges, rightControls);
 
@@ -112,14 +124,10 @@ export class UIManager {
     this.newGameBtn.textContent = t('ui.newGame');
     this.gameOverBanner.textContent = t('ui.gameOver');
 
-    // Update rule panel if visible
-    const currentCard = this.rulePanel.dataset['card'];
-    if (currentCard) {
-      const ruleKey = this.rulePanel.dataset['ruleKey'];
-      if (ruleKey) {
-        this.ruleTitle.textContent = t(`rules.${ruleKey}.title`);
-        this.ruleDescription.textContent = t(`rules.${ruleKey}.description`);
-      }
+    const ruleKey = this.rulePanel.dataset['ruleKey'];
+    if (ruleKey) {
+      this.ruleTitle.textContent = t(`rules.${ruleKey}.title`);
+      this.ruleDescription.textContent = t(`rules.${ruleKey}.description`);
     }
 
     document.documentElement.lang = getLocale() === 'ua' ? 'uk' : 'en';
@@ -145,7 +153,7 @@ export class UIManager {
     this.queenCounter.textContent = `${t('ui.queensCounter')}: ${state.queenCount}/4`;
 
     if (state.jackHolder) {
-      this.jackBadge.textContent = `${t('ui.jackHolder')}: ✦`;
+      this.jackBadge.textContent = `${t('ui.jackHolder')}: \u2726`;
       this.jackBadge.classList.add('active');
     } else {
       this.jackBadge.textContent = `${t('ui.jackHolder')}: ${t('ui.noJackHolder')}`;

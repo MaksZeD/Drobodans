@@ -8,6 +8,7 @@ import { AnimationController } from '../animation/AnimationController.js';
 import { GameState } from './GameState.js';
 import { UIManager } from '../ui/UIManager.js';
 import { ThemeManager } from '../ui/ThemeManager.js';
+import { SoundManager } from '../audio/SoundManager.js';
 
 export class GameController {
   private sceneManager: SceneManager;
@@ -17,6 +18,7 @@ export class GameController {
   private animController: AnimationController;
   private uiManager: UIManager;
   private themeManager: ThemeManager;
+  private soundManager: SoundManager;
 
   private deckMesh!: DeckMesh;
   private currentCardMesh: CardMesh | null = null;
@@ -34,9 +36,9 @@ export class GameController {
     this.gameState = new GameState();
     this.animController = new AnimationController();
     this.themeManager = new ThemeManager();
-    this.uiManager = new UIManager(overlay, this.themeManager, () => this.newGame());
+    this.soundManager = new SoundManager();
+    this.uiManager = new UIManager(overlay, this.themeManager, this.soundManager, () => this.newGame());
 
-    // Generate all textures upfront
     this.textureGen.generateAll();
 
     this.setupDeck();
@@ -45,8 +47,9 @@ export class GameController {
 
     this.sceneManager.startLoop(() => {});
 
-    // Play shuffle animation on load
+    // Shuffle animation on load
     this.isAnimating = true;
+    this.soundManager.playShuffle();
     this.animController.shuffleDeck(this.deckMesh).then(() => {
       this.isAnimating = false;
     });
@@ -93,9 +96,14 @@ export class GameController {
 
     this.gameState.on('fourthQueen', () => {
       this.uiManager.showFourthQueenAlert();
+      this.soundManager.playQueenAlert();
       if (this.currentCardMesh) {
         this.animController.queenAlert(this.currentCardMesh);
       }
+    });
+
+    this.gameState.on('gameOver', () => {
+      this.soundManager.playGameOver();
     });
 
     window.addEventListener('resize', () => {
@@ -146,6 +154,7 @@ export class GameController {
     this.isAnimating = true;
 
     this.animController.deckBounce(this.deckMesh);
+    this.soundManager.playCardSlide();
 
     // Dismiss previous card
     if (this.currentCardMesh) {
@@ -174,8 +183,11 @@ export class GameController {
     const deckPos = this.getDeckPosition();
     const center = this.getCardCenter();
 
-    // Animate draw + flip, THEN show rule
-    await this.animController.drawCard(cardMesh, deckPos.x, deckPos.y, center.x, center.y);
+    // Animate draw + flip, play flip sound at midpoint, THEN show rule
+    await this.animController.drawCard(
+      cardMesh, deckPos.x, deckPos.y, center.x, center.y,
+      () => this.soundManager.playCardFlip(),
+    );
 
     this.gameState.processCard(card, this.deck.remaining);
     this.uiManager.showRule(card);
@@ -198,8 +210,9 @@ export class GameController {
     this.deckMesh.updateCount(this.deck.remaining);
     this.uiManager.resetUI();
 
-    // Play shuffle animation
+    // Shuffle animation + sound
     this.isAnimating = true;
+    this.soundManager.playShuffle();
     this.animController.shuffleDeck(this.deckMesh).then(() => {
       this.isAnimating = false;
     });

@@ -6,22 +6,25 @@ import type * as THREE from 'three';
 export class AnimationController {
   private currentTimeline: gsap.core.Timeline | null = null;
 
+  /**
+   * ScaleX flip: squeeze to 0 width → swap texture → expand back.
+   * Works perfectly with OrthographicCamera (no 3D rotation needed).
+   */
   drawCard(
     cardMesh: CardMesh,
     deckX: number,
     deckY: number,
     centerX: number,
     centerY: number,
+    onFlip?: () => void,
   ): Promise<void> {
     return new Promise((resolve) => {
       const group = cardMesh.group;
       const baseScaleX = group.scale.x;
       const baseScaleY = group.scale.y;
 
-      // Start at deck position showing BACK (rotation.y = PI → backMesh faces camera)
+      // Start at deck position showing back (default texture)
       group.position.set(deckX, deckY, 20);
-      group.rotation.y = Math.PI;
-      group.scale.set(baseScaleX, baseScaleY, 1);
 
       this.currentTimeline = gsap.timeline({
         onComplete: () => {
@@ -31,31 +34,35 @@ export class AnimationController {
       });
 
       this.currentTimeline
-        // Move to center
+        // Slide from deck to center
         .to(group.position, {
           x: centerX,
           y: centerY,
           duration: 0.4,
           ease: 'power2.out',
         })
-        // Scale up slightly
+        // First half of flip: squeeze X to near-zero
         .to(group.scale, {
-          x: baseScaleX * 1.15,
-          y: baseScaleY * 1.15,
-          duration: 0.15,
-          ease: 'power1.out',
+          x: 0.01,
+          duration: 0.2,
+          ease: 'power2.in',
+          onComplete: () => {
+            cardMesh.showFront();
+            onFlip?.();
+          },
         })
-        // Flip to reveal FRONT (PI → 2*PI, continues same rotation direction)
-        .to(group.rotation, {
-          y: Math.PI * 2,
-          duration: 0.5,
-          ease: 'power2.inOut',
+        // Second half: expand to reveal front, slight overshoot
+        .to(group.scale, {
+          x: baseScaleX * 1.1,
+          y: baseScaleY * 1.05,
+          duration: 0.25,
+          ease: 'power2.out',
         })
-        // Settle scale
+        // Settle to normal size
         .to(group.scale, {
           x: baseScaleX,
           y: baseScaleY,
-          duration: 0.3,
+          duration: 0.2,
           ease: 'power1.inOut',
         });
     });
@@ -128,6 +135,8 @@ export class AnimationController {
         return;
       }
 
+      const count = visible.length;
+
       // Store original positions
       const originals = visible.map((l) => ({
         x: l.position.x,
@@ -137,55 +146,82 @@ export class AnimationController {
 
       const tl = gsap.timeline({ onComplete: resolve });
 
-      // Phase 1: Scatter cards outward
+      // --- Phase 1: Cascade spread into arc (0 – ~0.9s) ---
       visible.forEach((layer, i) => {
-        const angle = ((i / visible.length) * Math.PI * 2) - Math.PI / 2;
-        const radius = 30 + Math.random() * 20;
+        const t = count > 1 ? i / (count - 1) : 0.5;
+        const angle = Math.PI * 0.25 + t * Math.PI * 0.5;
+        const radius = 55 + (i % 3) * 12;
+        const delay = i * 0.06;
 
-        tl.to(
-          layer.position,
-          {
-            x: Math.cos(angle) * radius,
-            y: originals[i].y + Math.sin(angle) * radius,
-            duration: 0.3,
-            ease: 'power2.out',
-          },
-          i * 0.025,
-        );
-        tl.to(
-          layer.rotation,
-          {
-            z: (Math.random() - 0.5) * 0.6,
-            duration: 0.3,
-            ease: 'power2.out',
-          },
-          i * 0.025,
-        );
+        tl.to(layer.position, {
+          x: Math.cos(angle) * radius * (t < 0.5 ? -1 : 1),
+          y: originals[i].y + Math.sin(angle) * radius * 0.6 + 15,
+          duration: 0.4,
+          ease: 'power3.out',
+        }, delay);
+
+        tl.to(layer.rotation, {
+          z: -0.4 + t * 0.8,
+          duration: 0.4,
+          ease: 'power2.out',
+        }, delay);
       });
 
-      // Phase 2: Gather back into stack
+      // --- Phase 2: Swirl to opposite positions (0.9 – ~1.5s) ---
+      const p2 = count * 0.06 + 0.5;
       visible.forEach((layer, i) => {
-        tl.to(
-          layer.position,
-          {
-            x: originals[i].x,
-            y: originals[i].y,
-            z: originals[i].z,
-            duration: 0.35,
-            ease: 'back.out(1.7)',
-          },
-          0.5 + i * 0.025,
-        );
-        tl.to(
-          layer.rotation,
-          {
-            z: 0,
-            duration: 0.35,
-            ease: 'power2.in',
-          },
-          0.5 + i * 0.025,
-        );
+        const t = count > 1 ? i / (count - 1) : 0.5;
+        const angle = Math.PI * 0.75 - t * Math.PI * 0.5;
+        const radius = 45 + ((count - 1 - i) % 3) * 12;
+
+        tl.to(layer.position, {
+          x: Math.cos(angle) * radius * (t < 0.5 ? 1 : -1),
+          y: originals[i].y + Math.sin(angle) * radius * 0.4,
+          duration: 0.35,
+          ease: 'power2.inOut',
+        }, p2 + i * 0.03);
+
+        tl.to(layer.rotation, {
+          z: 0.4 - t * 0.8,
+          duration: 0.35,
+          ease: 'power2.inOut',
+        }, p2 + i * 0.03);
       });
+
+      // --- Phase 3: Gather back into stack, reverse order (1.5 – ~2.5s) ---
+      const p3 = p2 + count * 0.03 + 0.5;
+      [...visible].reverse().forEach((layer, ri) => {
+        const origIdx = count - 1 - ri;
+        tl.to(layer.position, {
+          x: originals[origIdx].x,
+          y: originals[origIdx].y,
+          z: originals[origIdx].z,
+          duration: 0.4,
+          ease: 'back.out(2.5)',
+        }, p3 + ri * 0.05);
+
+        tl.to(layer.rotation, {
+          z: 0,
+          duration: 0.4,
+          ease: 'power3.out',
+        }, p3 + ri * 0.05);
+      });
+
+      // --- Phase 4: Stack settle bounce (2.5 – ~2.9s) ---
+      const p4 = p3 + count * 0.05 + 0.45;
+      const baseScaleY = deckMesh.group.scale.y;
+
+      tl.to(deckMesh.group.scale, {
+        y: baseScaleY * 0.85,
+        duration: 0.1,
+        ease: 'power2.in',
+      }, p4);
+
+      tl.to(deckMesh.group.scale, {
+        y: baseScaleY,
+        duration: 0.3,
+        ease: 'elastic.out(1, 0.4)',
+      }, p4 + 0.1);
     });
   }
 

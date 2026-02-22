@@ -58,6 +58,11 @@
   transform: scale(0.95);
 }
 
+.icon-btn.muted {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
 /* Rule panel */
 .rule-panel {
   position: absolute;

@@ -2,33 +2,39 @@ import * as THREE from 'three';
 
 export class CardMesh {
   readonly group: THREE.Group;
-  private frontMesh: THREE.Mesh;
-  private backMesh: THREE.Mesh;
+  private mesh: THREE.Mesh;
+  private material: THREE.MeshBasicMaterial;
+  private frontTexture: THREE.Texture;
+  private backTexture: THREE.Texture;
 
   static readonly WIDTH = 128;
   static readonly HEIGHT = 192;
 
   constructor(frontTexture: THREE.Texture, backTexture: THREE.Texture) {
+    this.frontTexture = frontTexture;
+    this.backTexture = backTexture;
     this.group = new THREE.Group();
 
     const geo = new THREE.PlaneGeometry(CardMesh.WIDTH, CardMesh.HEIGHT);
 
-    this.frontMesh = new THREE.Mesh(
-      geo,
-      new THREE.MeshBasicMaterial({ map: frontTexture, transparent: true })
-    );
-    this.frontMesh.position.z = 0.01;
-    this.frontMesh.renderOrder = 10;
+    // Single plane, starts showing back texture
+    this.material = new THREE.MeshBasicMaterial({
+      map: backTexture,
+      transparent: true,
+    });
+    this.mesh = new THREE.Mesh(geo, this.material);
+    this.mesh.renderOrder = 10;
+    this.group.add(this.mesh);
+  }
 
-    this.backMesh = new THREE.Mesh(
-      geo,
-      new THREE.MeshBasicMaterial({ map: backTexture, transparent: true })
-    );
-    this.backMesh.rotation.y = Math.PI;
-    this.backMesh.position.z = -0.01;
-    this.backMesh.renderOrder = 10;
+  showFront(): void {
+    this.material.map = this.frontTexture;
+    this.material.needsUpdate = true;
+  }
 
-    this.group.add(this.frontMesh, this.backMesh);
+  showBack(): void {
+    this.material.map = this.backTexture;
+    this.material.needsUpdate = true;
   }
 
   setScale(factor: number): void {
@@ -36,9 +42,7 @@ export class CardMesh {
   }
 
   dispose(): void {
-    this.frontMesh.geometry.dispose();
-    (this.frontMesh.material as THREE.MeshBasicMaterial).dispose();
-    this.backMesh.geometry.dispose();
-    (this.backMesh.material as THREE.MeshBasicMaterial).dispose();
+    this.mesh.geometry.dispose();
+    this.material.dispose();
   }
 }
