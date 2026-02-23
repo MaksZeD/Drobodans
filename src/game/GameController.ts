@@ -29,7 +29,6 @@ export class GameController {
 
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
-
   private static readonly CARD_Z = 20;
 
   constructor(canvas: HTMLCanvasElement, overlay: HTMLElement) {

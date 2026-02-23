@@ -35,6 +35,13 @@ export class DeckMesh {
     });
   }
 
+  getTopLayer(): THREE.Mesh | null {
+    for (let i = this.layers.length - 1; i >= 0; i--) {
+      if (this.layers[i].visible) return this.layers[i];
+    }
+    return null;
+  }
+
   setScale(factor: number): void {
     this.group.scale.set(factor, factor, 1);
   }

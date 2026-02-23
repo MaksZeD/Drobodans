@@ -114,14 +114,15 @@
   bottom: 22%;
   left: 50%;
   transform: translateX(-50%);
-  padding: 14px 28px;
-  font-size: 14px;
+  width: min(380px, 88vw);
+  padding: 14px 20px;
+  font-size: 11px;
   color: var(--accent);
   text-align: center;
-  white-space: nowrap;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s;
+  line-height: 1.8;
 }
 
 .game-over-banner.visible {
