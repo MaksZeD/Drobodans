@@ -109,7 +109,7 @@ export class GameController {
       this.soundManager.playGameOver();
     });
 
-    window.addEventListener('resize', () => {
+    const handleResize = () => {
       const scale = this.getCardScale();
       this.deckMesh.setScale(scale);
       const pos = this.getDeckPosition();
@@ -120,7 +120,12 @@ export class GameController {
         this.currentCardMesh.group.position.set(center.x, center.y, GameController.CARD_Z);
       }
       this.arrangeDiscardPile();
-    });
+    };
+
+    window.addEventListener('resize', handleResize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    }
   }
 
   private setupInput(canvas: HTMLCanvasElement): void {

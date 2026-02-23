@@ -27,6 +27,11 @@ export class SceneManager {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     window.addEventListener('resize', this.onResize);
+
+    // iOS dynamic text size / visual viewport changes
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this.onResize);
+    }
   }
 
   private onResize = (): void => {
